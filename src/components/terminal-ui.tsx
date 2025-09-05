@@ -33,7 +33,9 @@ export function TerminalUI() {
     e.preventDefault();
     if (input.trim() === '' || running) return;
     
-    setHistory((prev) => [...prev, { type: 'command', content: input }]);
+    const newHistory = [...history, { type: 'command' as const, content: input }];
+    setHistory(newHistory);
+    setInput('');
     setRunning(true);
     
     try {
@@ -46,7 +48,6 @@ export function TerminalUI() {
       setHistory((prev) => [...prev, { type: 'response', content: "An error occurred." }]);
     } finally {
       setRunning(false);
-      setInput('');
     }
   };
   

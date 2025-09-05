@@ -19,17 +19,20 @@ const GenerateSecurityReportInputSchema = z.object({
   selectedParameters: z
     .array(z.string())
     .describe(
-      'Parameters to include in the report (e.g., Number of alerts, Types of threats detected, System vulnerabilities, User activity).'  ),
+      'Parameters to include in the report (e.g., Number of alerts, Types of threats detected, System vulnerabilities, User activity).'
+    ),
   additionalNotes: z.string().optional().describe('Any additional notes or context to include in the report.'),
 });
 export type GenerateSecurityReportInput = z.infer<typeof GenerateSecurityReportInputSchema>;
 
 const GenerateSecurityReportOutputSchema = z.object({
-  reportContent: z.string().describe('The generated security report content.'),
+  reportContent: z.string().describe('The generated security report content in Markdown format.'),
 });
 export type GenerateSecurityReportOutput = z.infer<typeof GenerateSecurityReportOutputSchema>;
 
-export async function generateSecurityReport(input: GenerateSecurityReportInput): Promise<GenerateSecurityReportOutput> {
+export async function generateSecurityReport(
+  input: GenerateSecurityReportInput
+): Promise<GenerateSecurityReportOutput> {
   return generateSecurityReportFlow(input);
 }
 
@@ -37,20 +40,41 @@ const prompt = ai.definePrompt({
   name: 'generateSecurityReportPrompt',
   input: {schema: GenerateSecurityReportInputSchema},
   output: {schema: GenerateSecurityReportOutputSchema},
-  prompt: `You are a security expert. Generate a comprehensive security report based on the following parameters:
+  prompt: `You are a professional cybersecurity analyst tasked with creating a detailed security report.
+Use Markdown for formatting. The report must be well-structured, clear, and comprehensive.
 
-Report Title: {{{reportTitle}}}
-Date Range: {{{dateRange}}}
-Selected Parameters:
+**Report Title:** {{{reportTitle}}}
+**Date Range:** {{{dateRange}}}
+
+---
+
+### 1. Executive Summary
+Provide a high-level overview of the security posture for the given date range. Summarize the most critical findings and the overall risk level. This section is for a non-technical audience.
+
+### 2. Key Findings
+List the most significant security events and observations as bullet points. Include metrics and specific examples where possible.
+- **Alerts Overview:** Total alerts, breakdown by severity.
+- **Threat Landscape:** Dominant threat types observed.
+- **System Health:** Key vulnerabilities or system issues.
+- **User Behavior:** Notable user activity patterns.
+
+### 3. Detailed Analysis
+Provide a thorough analysis for each of the selected parameters below. Use data and context to explain the significance of the findings.
+
 {{#each selectedParameters}}
-- {{{this}}}
+- **{{{this}}}:** [Provide a detailed breakdown and analysis for this parameter here]
 {{/each}}
 
-{{#if additionalNotes}}
-Additional Notes: {{{additionalNotes}}}
-{{/if}}
+### 4. Risk Assessment
+Evaluate the potential impact and likelihood of the identified threats and vulnerabilities. Assign a risk level (Critical, High, Medium, Low) to the key findings and justify your assessment.
 
-Provide a detailed analysis and insights based on the selected parameters and date range.  The report should be well-structured and easy to understand, suitable for communicating security findings to both technical and non-technical audiences.
+### 5. Recommendations & Action Items
+Suggest specific, actionable steps to mitigate the identified risks. Prioritize recommendations based on severity and urgency. For each recommendation, specify the suggested action, the responsible party (e.g., IT, DevOps), and a priority level.
+
+{{#if additionalNotes}}
+### 6. Additional Notes
+{{{additionalNotes}}}
+{{/if}}
 `,
 });
 
