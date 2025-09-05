@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Terminal,
   Shield,
+  Zap,
 } from 'lucide-react';
 
 import {
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/alerts', icon: AlertTriangle, label: 'Alerts' },
   { href: '/reports', icon: FileBarChart, label: 'Reports' },
   { href: '/threat-intelligence', icon: ShieldCheck, label: 'Threat Intel' },
+  { href: '/analysis', icon: Zap, label: 'Analysis' },
   { href: '/terminal', icon: Terminal, label: 'Terminal' },
 ];
 
