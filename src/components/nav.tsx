@@ -12,6 +12,7 @@ import {
   Terminal,
   Shield,
   Zap,
+  Upload,
 } from 'lucide-react';
 
 import {
@@ -28,6 +29,7 @@ const navItems = [
   { href: '/reports', icon: FileBarChart, label: 'Reports' },
   { href: '/threat-intelligence', icon: ShieldCheck, label: 'Threat Intel' },
   { href: '/analysis', icon: Zap, label: 'Analysis' },
+  { href: '/ingestion', icon: Upload, label: 'Ingestion' },
   { href: '/terminal', icon: Terminal, label: 'Terminal' },
 ];
 
