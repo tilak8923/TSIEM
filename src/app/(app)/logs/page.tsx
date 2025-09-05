@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -18,9 +18,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { logEntries as allLogEntries } from '@/lib/data';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUserId } from '@/hooks/use-user-id';
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { LogEntry } from '@/lib/types';
+
 
 const severities = ['ALL', 'CRITICAL', 'WARN', 'INFO', 'DEBUG'];
 
@@ -36,8 +40,23 @@ const getSeverityBadgeVariant = (severity: string) => {
 };
 
 export default function LogsPage() {
+  const userId = useUserId();
+  const [allLogEntries, setAllLogEntries] = useState<LogEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState('ALL');
+
+  useEffect(() => {
+    if (!userId) return;
+    
+    const logsQuery = query(collection(db, 'users', userId, 'logs'));
+    
+    const unsubscribe = onSnapshot(logsQuery, (snapshot) => {
+        const logsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LogEntry));
+        setAllLogEntries(logsData);
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
 
   const filteredLogs = allLogEntries.filter((log) => {
     const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||

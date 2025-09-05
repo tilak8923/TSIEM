@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -31,17 +31,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { alertRules as initialAlertRules } from '@/lib/data';
 import { PlusCircle, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUserId } from '@/hooks/use-user-id';
+import { collection, onSnapshot, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { AlertRule } from '@/lib/types';
 
-type AlertRule = {
-    id: string;
-    name: string;
-    condition: string;
-    severity: string;
-    enabled: boolean;
-};
 
 const getSeverityBadgeVariant = (severity: string) => {
     switch (severity) {
@@ -57,7 +53,49 @@ const getSeverityBadgeVariant = (severity: string) => {
 };
 
 export default function AlertsPage() {
-    const [rules, setRules] = useState(initialAlertRules);
+    const userId = useUserId();
+    const [rules, setRules] = useState<AlertRule[]>([]);
+    
+    // Form state for new rule
+    const [newRuleName, setNewRuleName] = useState('');
+    const [newRuleCondition, setNewRuleCondition] = useState('');
+    const [newRuleSeverity, setNewRuleSeverity] = useState('');
+
+
+    useEffect(() => {
+        if (!userId) return;
+
+        const rulesQuery = collection(db, 'users', userId, 'alertRules');
+        const unsubscribe = onSnapshot(rulesQuery, (snapshot) => {
+            const rulesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AlertRule));
+            setRules(rulesData);
+        });
+
+        return () => unsubscribe();
+    }, [userId]);
+    
+    const handleToggleRule = async (rule: AlertRule) => {
+        if (!userId) return;
+        const ruleRef = doc(db, 'users', userId, 'alertRules', rule.id);
+        await updateDoc(ruleRef, { enabled: !rule.enabled });
+    }
+
+    const handleCreateRule = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!userId || !newRuleName || !newRuleCondition || !newRuleSeverity) return;
+
+        await addDoc(collection(db, 'users', userId, 'alertRules'), {
+            name: newRuleName,
+            condition: newRuleCondition,
+            severity: newRuleSeverity,
+            enabled: true,
+        });
+        
+        // Reset form
+        setNewRuleName('');
+        setNewRuleCondition('');
+        setNewRuleSeverity('');
+    }
 
     return (
         <div className="flex flex-col gap-4">
@@ -70,40 +108,41 @@ export default function AlertsPage() {
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Create New Alert Rule</DialogTitle>
-                            <DialogDescription>
-                               Define the conditions for a new security alert.
-                            </DialogDescription>
-                        </DialogHeader>
-                        {/* Form would go here */}
-                         <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="name" className="text-right">Name</Label>
-                                <Input id="name" defaultValue="New Rule" className="col-span-3" />
+                        <form onSubmit={handleCreateRule}>
+                            <DialogHeader>
+                                <DialogTitle>Create New Alert Rule</DialogTitle>
+                                <DialogDescription>
+                                   Define the conditions for a new security alert.
+                                </DialogDescription>
+                            </DialogHeader>
+                             <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="name" className="text-right">Name</Label>
+                                    <Input id="name" value={newRuleName} onChange={e => setNewRuleName(e.target.value)} className="col-span-3" />
+                                </div>
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="condition" className="text-right">Condition</Label>
+                                    <Input id="condition" value={newRuleCondition} onChange={e => setNewRuleCondition(e.target.value)} placeholder="e.g., event.type == 'failed_login'" className="col-span-3" />
+                                </div>
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="severity" className="text-right">Severity</Label>
+                                     <Select onValueChange={setNewRuleSeverity}>
+                                        <SelectTrigger className="col-span-3">
+                                            <SelectValue placeholder="Select severity" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Low">Low</SelectItem>
+                                            <SelectItem value="Medium">Medium</SelectItem>
+                                            <SelectItem value="High">High</SelectItem>
+                                            <SelectItem value="Critical">Critical</SelectItem>
+                                        </SelectContent>
+                                     </Select>
+                                </div>
                             </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="condition" className="text-right">Condition</Label>
-                                <Input id="condition" placeholder="e.g., event.type == 'failed_login'" className="col-span-3" />
-                            </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="severity" className="text-right">Severity</Label>
-                                 <Select>
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Select severity" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="low">Low</SelectItem>
-                                        <SelectItem value="medium">Medium</SelectItem>
-                                        <SelectItem value="high">High</SelectItem>
-                                        <SelectItem value="critical">Critical</SelectItem>
-                                    </SelectContent>
-                                 </Select>
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button type="submit">Create Rule</Button>
-                        </DialogFooter>
+                            <DialogFooter>
+                                <Button type="submit">Create Rule</Button>
+                            </DialogFooter>
+                        </form>
                     </DialogContent>
                 </Dialog>
             </header>
@@ -138,9 +177,7 @@ export default function AlertsPage() {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center space-x-2">
-                                            <Switch id={`status-${rule.id}`} checked={rule.enabled} onCheckedChange={(checked) => {
-                                                setRules(rules.map(r => r.id === rule.id ? {...r, enabled: checked} : r));
-                                            }}/>
+                                            <Switch id={`status-${rule.id}`} checked={rule.enabled} onCheckedChange={() => handleToggleRule(rule)}/>
                                             <Label htmlFor={`status-${rule.id}`}>{rule.enabled ? 'Enabled' : 'Disabled'}</Label>
                                         </div>
                                     </TableCell>

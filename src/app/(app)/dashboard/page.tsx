@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -25,9 +26,8 @@ import {
 } from 'lucide-react';
 import {
   dashboardStats,
-  recentAlerts,
-  eventsByType,
-  systemStatus,
+  eventsByType as staticEvents,
+  systemStatus as staticSystemStatus,
 } from '@/lib/data';
 import {
   ChartContainer,
@@ -35,6 +35,11 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, LabelList } from 'recharts';
+import { useUserId } from '@/hooks/use-user-id';
+import { collection, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Alert, SystemStatus } from '@/lib/types';
+
 
 function getSeverityBadge(severity: string) {
   switch (severity.toLowerCase()) {
@@ -63,6 +68,29 @@ function getStatusIndicator(status: string) {
 }
 
 export default function DashboardPage() {
+  const userId = useUserId();
+  const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus[]>(staticSystemStatus);
+  const [eventsByType, setEventsByType] = useState(staticEvents);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const alertsQuery = query(
+        collection(db, 'users', userId, 'alerts'),
+        orderBy('timestamp', 'desc'),
+        limit(5)
+    );
+
+    const unsubscribe = onSnapshot(alertsQuery, (snapshot) => {
+        const alertsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Alert));
+        setRecentAlerts(alertsData);
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
+
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
