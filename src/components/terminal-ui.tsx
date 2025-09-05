@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { provideCommandLineAssistance } from '@/ai/flows/provide-command-line-assistance';
+import { appCli } from '@/ai/flows/app-cli';
 import { cn } from '@/lib/utils';
 
 interface HistoryItem {
@@ -18,6 +18,9 @@ export function TerminalUI() {
 
   useEffect(() => {
     inputRef.current?.focus();
+    setHistory([
+        { type: 'response', content: 'TSIEM Command Line Interface\nType `help` for a list of commands.'}
+    ]);
   }, []);
   
   useEffect(() => {
@@ -38,7 +41,7 @@ export function TerminalUI() {
     setRunning(true);
     
     try {
-      const result = await provideCommandLineAssistance({ command: input });
+      const result = await appCli({ command: input });
       if (result) {
         setHistory((prev) => [...prev, { type: 'response', content: result.response }]);
       }
