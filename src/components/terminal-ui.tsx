@@ -9,6 +9,15 @@ interface HistoryItem {
   content: string;
 }
 
+const asciiBanner = `
+ _____ ____ ___ ____  __  __
+|_   _|_  _|_ _|  _ \\|  \\/  |
+  | |   | | | || | | | |\\/| |
+  | |   | | | || |_| | |  | |
+  |_|   |_| |___|____/|_|  |_|
+           By tcybercodespace
+`;
+
 export function TerminalUI() {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -19,7 +28,7 @@ export function TerminalUI() {
   useEffect(() => {
     inputRef.current?.focus();
     setHistory([
-        { type: 'response', content: 'TSIEM Command Line Interface\nType `help` for a list of commands.'}
+        { type: 'response', content: `${asciiBanner}\nWelcome to TSIEM Command Line Interface. Type 'help' for commands.`}
     ]);
   }, []);
   
