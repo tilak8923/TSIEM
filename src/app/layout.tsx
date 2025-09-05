@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'SentinelView',
+  title: 'TSIEM',
   description: 'A cybersecurity monitoring and threat analysis dashboard.',
 };
 

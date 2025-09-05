@@ -36,7 +36,7 @@ export function MainNav() {
     <nav className="flex flex-col gap-4 p-2">
        <div className="flex items-center gap-2 p-2">
         <Shield className="h-8 w-8 text-primary" />
-        <h1 className="text-xl font-bold tracking-widest">SENTINEL</h1>
+        <h1 className="text-xl font-bold tracking-widest">TSIEM</h1>
       </div>
       <SidebarMenu>
         {navItems.map((item) => {

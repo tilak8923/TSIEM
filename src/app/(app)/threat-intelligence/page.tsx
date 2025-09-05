@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useFlow } from '@genkit-ai/next/client';
+import { useFlowState } from '@genkit-ai/next/client';
 import { analyzeThreatFeed } from '@/ai/flows/analyze-threat-feed';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 export default function ThreatIntelPage() {
     const [feedEntry, setFeedEntry] = useState('{"timestamp": "2023-10-27T10:00:00Z", "source_ip": "198.51.100.42", "event_type": "web_request", "details": "GET /wp-admin/install.php"}');
     const [knownVulnerabilities, setKnownVulnerabilities] = useState('CVE-2023-4512 - WordPress Core Vulnerability\nLog4Shell - Apache Log4j Vulnerability');
-    const { run: analyze, output, running } = useFlow(analyzeThreatFeed);
+    const {run: analyze, output, running} = useFlowState(analyzeThreatFeed);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useFlow } from '@genkit-ai/next/client';
+import { useFlowState } from '@genkit-ai/next/client';
 import { provideCommandLineAssistance } from '@/ai/flows/provide-command-line-assistance';
 import { cn } from '@/lib/utils';
 import { Terminal } from 'lucide-react';
@@ -14,7 +14,7 @@ interface HistoryItem {
 export function TerminalUI() {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const { run: getAssistance, output, running } = useFlow(provideCommandLineAssistance);
+  const {run: getAssistance, output, running} = useFlowState(provideCommandLineAssistance);
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
