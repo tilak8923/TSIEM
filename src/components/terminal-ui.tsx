@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useFlowState } from '@genkit-ai/next/client';
 import { provideCommandLineAssistance } from '@/ai/flows/provide-command-line-assistance';
 import { cn } from '@/lib/utils';
 import { Terminal } from 'lucide-react';
@@ -14,7 +13,7 @@ interface HistoryItem {
 export function TerminalUI() {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const {run: getAssistance, output, running} = useFlowState(provideCommandLineAssistance);
+  const [running, setRunning] = useState(false);
   const endOfHistoryRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -22,12 +21,6 @@ export function TerminalUI() {
     inputRef.current?.focus();
   }, []);
   
-  useEffect(() => {
-    if (output) {
-      setHistory((prev) => [...prev, { type: 'response', content: output.response }]);
-    }
-  }, [output]);
-
   useEffect(() => {
     endOfHistoryRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, running]);
@@ -41,8 +34,20 @@ export function TerminalUI() {
     if (input.trim() === '' || running) return;
     
     setHistory((prev) => [...prev, { type: 'command', content: input }]);
-    await getAssistance({ command: input });
-    setInput('');
+    setRunning(true);
+    
+    try {
+      const result = await provideCommandLineAssistance({ command: input });
+      if (result) {
+        setHistory((prev) => [...prev, { type: 'response', content: result.response }]);
+      }
+    } catch (error) {
+      console.error("Error getting assistance:", error);
+      setHistory((prev) => [...prev, { type: 'response', content: "An error occurred." }]);
+    } finally {
+      setRunning(false);
+      setInput('');
+    }
   };
   
   const handleTerminalClick = () => {

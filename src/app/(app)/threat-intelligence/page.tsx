@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useFlowState } from '@genkit-ai/next/client';
 import { analyzeThreatFeed } from '@/ai/flows/analyze-threat-feed';
+import type { AnalyzeThreatFeedOutput } from '@/ai/flows/analyze-threat-feed';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,15 +21,28 @@ import { cn } from '@/lib/utils';
 export default function ThreatIntelPage() {
     const [feedEntry, setFeedEntry] = useState('{"timestamp": "2023-10-27T10:00:00Z", "source_ip": "198.51.100.42", "event_type": "web_request", "details": "GET /wp-admin/install.php"}');
     const [knownVulnerabilities, setKnownVulnerabilities] = useState('CVE-2023-4512 - WordPress Core Vulnerability\nLog4Shell - Apache Log4j Vulnerability');
-    const {run: analyze, output, running} = useFlowState(analyzeThreatFeed);
+    
+    const [output, setOutput] = useState<AnalyzeThreatFeedOutput | null>(null);
+    const [running, setRunning] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setRunning(true);
+        setOutput(null);
+
         const vulnerabilitiesArray = knownVulnerabilities.split('\n').filter(v => v.trim() !== '');
-        analyze({
-            feedEntry,
-            knownVulnerabilities: vulnerabilitiesArray,
-        });
+        
+        try {
+            const result = await analyzeThreatFeed({
+                feedEntry,
+                knownVulnerabilities: vulnerabilitiesArray,
+            });
+            setOutput(result);
+        } catch (error) {
+            console.error("Error analyzing threat feed:", error);
+        } finally {
+            setRunning(false);
+        }
     };
     
     const getResultCard = () => {

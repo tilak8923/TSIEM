@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useFlowState } from '@genkit-ai/next/client';
 import { generateSecurityReport } from '@/ai/flows/generate-security-report';
+import type { GenerateSecurityReportOutput } from '@/ai/flows/generate-security-report';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -38,20 +38,31 @@ export default function ReportsPage() {
   const [selectedParams, setSelectedParams] = useState<string[]>(['num_alerts', 'threat_types']);
   const [additionalNotes, setAdditionalNotes] = useState('');
 
-  const {run: generateReport, output, running} = useFlowState(generateSecurityReport);
+  const [output, setOutput] = useState<GenerateSecurityReportOutput | null>(null);
+  const [running, setRunning] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setRunning(true);
+    setOutput(null);
+
     const selectedLabels = selectedParams.map(paramId => {
         return reportParameters.find(p => p.id === paramId)?.label || '';
     }).filter(Boolean);
 
-    generateReport({
-        reportTitle,
-        dateRange,
-        selectedParameters: selectedLabels,
-        additionalNotes,
-    });
+    try {
+        const result = await generateSecurityReport({
+            reportTitle,
+            dateRange,
+            selectedParameters: selectedLabels,
+            additionalNotes,
+        });
+        setOutput(result);
+    } catch (error) {
+        console.error("Error generating report:", error);
+    } finally {
+        setRunning(false);
+    }
   };
 
   const handleCheckboxChange = (paramId: string) => {
