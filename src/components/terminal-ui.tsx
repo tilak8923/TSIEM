@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { provideCommandLineAssistance } from '@/ai/flows/provide-command-line-assistance';
 import { cn } from '@/lib/utils';
-import { Terminal } from 'lucide-react';
 
 interface HistoryItem {
   type: 'command' | 'response';
@@ -69,7 +68,7 @@ export function TerminalUI() {
                 <span>{item.content}</span>
               </div>
             ) : (
-              <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: item.content.replace(/ /g, '\u00A0')}}></div>
+              <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{__html: item.content}}></div>
             )}
           </div>
         ))}

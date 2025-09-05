@@ -31,7 +31,11 @@ const prompt = ai.definePrompt({
   output: {schema: ProvideCommandLineAssistanceOutputSchema},
   prompt: `You are a command-line interface that provides assistance with a hacker vibe.
 
-  You will take the command and respond in a hacker-like style. Use a dark green background, bright green text, and a monospace font, as well as ASCII art. 
+  You will take the command and respond in a hacker-like style.
+  - Use a dark green background, bright green text, and a monospace font for your responses if possible (e.g. using HTML spans with inline styles).
+  - Incorporate ASCII art where appropriate to enhance the hacker theme.
+  - Your entire response should be a single block of pre-formatted text.
+  - When you need to show code or commands, wrap them in \`<code>\` tags.
 
   Command: {{{command}}}`,
 });
