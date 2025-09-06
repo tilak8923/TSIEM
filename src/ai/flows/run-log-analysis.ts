@@ -6,7 +6,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import type { LogEntry, AlertRule } from '@/lib/types';
 
 // Define schemas for the flow
@@ -24,19 +24,7 @@ const RunLogAnalysisOutputSchema = z.object({
 export type RunLogAnalysisOutput = z.infer<typeof RunLogAnalysisOutputSchema>;
 
 
-// The main exported function that the frontend will call
-export async function runLogAnalysis(
-  // In a real app, you'd get the userId from the authenticated session
-): Promise<RunLogAnalysisOutput> {
-  // This is a workaround because we don't have authentication.
-  // The client will have to be responsible for providing its ID.
-  // In a real app, this would be handled securely on the server.
-  // We're expecting a client-side hook to provide this.
-  // This function will be called from a client component that has the user ID.
-  throw new Error("This function should be called from the client with a userId.");
-}
-
-// Wrapper for client-side calls that provides the user ID
+// This is the main exported function that the frontend will call
 export async function runLogAnalysisForUser(userId: string): Promise<RunLogAnalysisOutput> {
     return runLogAnalysisFlow({ userId });
 }
